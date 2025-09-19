@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { WalletConnect } from '@/components/WalletConnect'
 import { CONTRACT_ADDRESSES, SOMNIA_NAME_SERVICE_ABI } from '@/lib/contracts'
 import { formatAddress } from '@/lib/utils'
-import { ArrowLeft, Globe, Users, Search, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Globe, Users, Search, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 
 type TabType = 'register' | 'resolve' | 'my-names'
@@ -23,7 +23,6 @@ export default function NameServicePage() {
   
   // Resolve form
   const [nameToResolve, setNameToResolve] = useState('')
-  const [resolvedAddress, setResolvedAddress] = useState<string | null>(null)
   
   // Transfer form
   const [nameToTransfer, setNameToTransfer] = useState('')
@@ -114,8 +113,6 @@ export default function NameServicePage() {
     if (activeTab === 'register') {
       setNameToRegister('')
       refetchUserNames()
-    } else if (activeTab === 'resolve') {
-      setResolvedAddress(nameInfo ? nameInfo[0] : null)
     } else if (activeTab === 'my-names') {
       setNameToTransfer('')
       setNewOwner('')

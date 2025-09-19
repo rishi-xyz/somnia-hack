@@ -14,7 +14,7 @@ import { ArrowLeft, Gift, QrCode } from 'lucide-react'
 import Link from 'next/link'
 
 export default function CreateVoucherPage() {
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   const [amount, setAmount] = useState('')
   const [voucherId, setVoucherId] = useState('')
   const [isCreating, setIsCreating] = useState(false)

@@ -1,6 +1,6 @@
 import { createConfig, http } from 'wagmi'
 import { mainnet, sepolia } from 'wagmi/chains'
-import { injected, metaMask, walletConnect } from 'wagmi/connectors'
+import { metaMask } from 'wagmi/connectors'
 
 // Somnia testnet configuration
 const somnia = {

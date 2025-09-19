@@ -12,7 +12,7 @@ import { ArrowLeft, Gift, QrCode, CheckCircle, XCircle, AlertCircle } from 'luci
 import Link from 'next/link'
 
 export default function RedeemVoucherPage() {
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   const [voucherId, setVoucherId] = useState('')
   const [isRedeeming, setIsRedeeming] = useState(false)
   const [redeemedVoucher, setRedeemedVoucher] = useState<{ id: string; amount: string } | null>(null)

@@ -95,7 +95,7 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-6 relative">
               <p className="text-muted-foreground leading-relaxed">
-                Register human-readable names like "rishi.somnia" that map to 
+                Register human-readable names like &quot;rishi.somnia&quot; that map to 
                 wallet addresses. Perfect for easy transfers and identification.
               </p>
               <div className="flex gap-3">
