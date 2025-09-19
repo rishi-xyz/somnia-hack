@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useSwitchChain, useChainId } from 'wagmi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,14 +23,19 @@ export default function NameServicePage() {
   // Register form
   const [nameToRegister, setNameToRegister] = useState('')
   const [isRegistering, setIsRegistering] = useState(false)
+  const [registerError, setRegisterError] = useState<string | null>(null)
+  const [registerSuccess, setRegisterSuccess] = useState<string | null>(null)
   
   // Resolve form
   const [nameToResolve, setNameToResolve] = useState('')
+  const [resolveError, setResolveError] = useState<string | null>(null)
   
   // Transfer form
   const [nameToTransfer, setNameToTransfer] = useState('')
   const [newOwner, setNewOwner] = useState('')
   const [isTransferring, setIsTransferring] = useState(false)
+  const [transferError, setTransferError] = useState<string | null>(null)
+  const [transferSuccess, setTransferSuccess] = useState<string | null>(null)
 
   const { writeContract, data: hash, isPending, error } = useWriteContract()
   
@@ -71,16 +76,85 @@ export default function NameServicePage() {
     }
   }
 
+  const getErrorMessage = (error: any): string => {
+    if (!error) return 'An unknown error occurred'
+    
+    const message = error.message || error.toString()
+    
+    // Common error patterns and their user-friendly messages
+    if (message.includes('User rejected')) {
+      return 'Transaction was cancelled by user'
+    }
+    if (message.includes('insufficient funds')) {
+      return 'Insufficient STT tokens for gas fees. Please add more STT tokens to your wallet.'
+    }
+    if (message.includes('gas required exceeds allowance')) {
+      return 'Transaction failed due to gas limit. Please try again.'
+    }
+    if (message.includes('execution reverted')) {
+      return 'Transaction failed. The name might already be taken or invalid.'
+    }
+    if (message.includes('network')) {
+      return 'Network error. Please check your connection and try again.'
+    }
+    if (message.includes('timeout')) {
+      return 'Transaction timed out. Please try again.'
+    }
+    
+    // Return a truncated version of the original message if it's too long
+    return message.length > 100 ? message.substring(0, 100) + '...' : message
+  }
+
+  const clearErrors = () => {
+    setRegisterError(null)
+    setResolveError(null)
+    setTransferError(null)
+    setRegisterSuccess(null)
+    setTransferSuccess(null)
+  }
+
+  // Timeout mechanism to prevent stuck processing states
+  const resetProcessingStates = () => {
+    setIsRegistering(false)
+    setIsTransferring(false)
+  }
+
+  // Set a timeout to reset processing states if they get stuck
+  React.useEffect(() => {
+    if (isRegistering || isTransferring) {
+      const timeout = setTimeout(() => {
+        console.warn('Processing state timeout - resetting states')
+        resetProcessingStates()
+      }, 30000) // 30 second timeout
+
+      return () => clearTimeout(timeout)
+    }
+  }, [isRegistering, isTransferring])
+
   const handleRegisterName = async () => {
     if (!isConnected || !nameToRegister) return
 
+    // Clear previous errors
+    clearErrors()
+
     if (!isCorrectNetwork) {
-      alert('Please switch to Somnia Testnet to register names. You need STT tokens for gas fees.')
+      setRegisterError('Please switch to Somnia Testnet to register names. You need STT tokens for gas fees.')
       return
     }
 
     if (!CONTRACT_ADDRESSES.SOMNIA_NAME_SERVICE) {
-      alert('Contract address not configured. Please check your environment variables.')
+      setRegisterError('Contract address not configured. Please check your environment variables.')
+      return
+    }
+
+    // Basic validation
+    if (!nameToRegister.endsWith('.somnia')) {
+      setRegisterError('Name must end with .somnia')
+      return
+    }
+
+    if (nameToRegister.length < 3) {
+      setRegisterError('Name must be at least 3 characters long')
       return
     }
 
@@ -95,25 +169,55 @@ export default function NameServicePage() {
       })
     } catch (err) {
       console.error('Error registering name:', err)
+      setRegisterError(getErrorMessage(err))
       setIsRegistering(false)
     }
   }
 
   const handleResolveName = async () => {
     if (!nameToResolve) return
-    refetchNameInfo()
+    
+    // Clear previous errors
+    clearErrors()
+    
+    // Basic validation
+    if (!nameToResolve.endsWith('.somnia')) {
+      setResolveError('Name must end with .somnia')
+      return
+    }
+    
+    try {
+      await refetchNameInfo()
+    } catch (err) {
+      console.error('Error resolving name:', err)
+      setResolveError(getErrorMessage(err))
+    }
   }
 
   const handleTransferName = async () => {
     if (!isConnected || !nameToTransfer || !newOwner) return
 
+    // Clear previous errors
+    clearErrors()
+
     if (!isCorrectNetwork) {
-      alert('Please switch to Somnia Testnet to transfer names. You need STT tokens for gas fees.')
+      setTransferError('Please switch to Somnia Testnet to transfer names. You need STT tokens for gas fees.')
       return
     }
 
     if (!CONTRACT_ADDRESSES.SOMNIA_NAME_SERVICE) {
-      alert('Contract address not configured. Please check your environment variables.')
+      setTransferError('Contract address not configured. Please check your environment variables.')
+      return
+    }
+
+    // Basic validation
+    if (!nameToTransfer.endsWith('.somnia')) {
+      setTransferError('Name must end with .somnia')
+      return
+    }
+
+    if (!newOwner.startsWith('0x') || newOwner.length !== 42) {
+      setTransferError('Please enter a valid Ethereum address')
       return
     }
 
@@ -128,6 +232,7 @@ export default function NameServicePage() {
       })
     } catch (err) {
       console.error('Error transferring name:', err)
+      setTransferError(getErrorMessage(err))
       setIsTransferring(false)
     }
   }
@@ -137,13 +242,32 @@ export default function NameServicePage() {
     if (activeTab === 'register') {
       setNameToRegister('')
       refetchUserNames()
+      setIsRegistering(false)
+      setRegisterSuccess('Name registered successfully!')
+      // Clear success message after 5 seconds
+      setTimeout(() => setRegisterSuccess(null), 5000)
     } else if (activeTab === 'my-names') {
       setNameToTransfer('')
       setNewOwner('')
       refetchUserNames()
+      setIsTransferring(false)
+      setTransferSuccess('Name transferred successfully!')
+      // Clear success message after 5 seconds
+      setTimeout(() => setTransferSuccess(null), 5000)
     }
-    setIsRegistering(false)
-    setIsTransferring(false)
+    // Clear any errors on successful transaction
+    clearErrors()
+  }
+
+  // Handle transaction errors
+  if (error) {
+    if (activeTab === 'register') {
+      setRegisterError(getErrorMessage(error))
+      setIsRegistering(false)
+    } else if (activeTab === 'my-names') {
+      setTransferError(getErrorMessage(error))
+      setIsTransferring(false)
+    }
   }
 
   const getResolveResult = () => {
@@ -288,17 +412,29 @@ export default function NameServicePage() {
                         type="text"
                         placeholder="rishi.somnia"
                         value={nameToRegister}
-                        onChange={(e) => setNameToRegister(e.target.value)}
+                        onChange={(e) => {
+                          setNameToRegister(e.target.value)
+                          if (registerError) setRegisterError(null)
+                          if (registerSuccess) setRegisterSuccess(null)
+                        }}
                       />
                       <p className="text-xs text-gray-500">
                         Names must end with .somnia and contain only alphanumeric characters and hyphens
                       </p>
                     </div>
 
-                    {error && (
+                    {registerError && (
                       <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                         <p className="text-sm text-red-600">
-                          Error: {error.message}
+                          {registerError}
+                        </p>
+                      </div>
+                    )}
+
+                    {registerSuccess && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-sm text-green-600">
+                          {registerSuccess}
                         </p>
                       </div>
                     )}
@@ -352,7 +488,10 @@ export default function NameServicePage() {
                           type="text"
                           placeholder="rishi.somnia"
                           value={nameToResolve}
-                          onChange={(e) => setNameToResolve(e.target.value)}
+                          onChange={(e) => {
+                            setNameToResolve(e.target.value)
+                            if (resolveError) setResolveError(null)
+                          }}
                         />
                         <Button
                           onClick={handleResolveName}
@@ -364,6 +503,14 @@ export default function NameServicePage() {
                         </Button>
                       </div>
                     </div>
+
+                    {resolveError && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-600">
+                          {resolveError}
+                        </p>
+                      </div>
+                    )}
 
                     {nameToResolve && getResolveResult()}
                   </CardContent>
@@ -413,7 +560,11 @@ export default function NameServicePage() {
                           type="text"
                           placeholder="rishi.somnia"
                           value={nameToTransfer}
-                          onChange={(e) => setNameToTransfer(e.target.value)}
+                          onChange={(e) => {
+                            setNameToTransfer(e.target.value)
+                            if (transferError) setTransferError(null)
+                            if (transferSuccess) setTransferSuccess(null)
+                          }}
                         />
                       </div>
                       <div className="space-y-2">
@@ -425,14 +576,26 @@ export default function NameServicePage() {
                           type="text"
                           placeholder="0x..."
                           value={newOwner}
-                          onChange={(e) => setNewOwner(e.target.value)}
+                          onChange={(e) => {
+                            setNewOwner(e.target.value)
+                            if (transferError) setTransferError(null)
+                            if (transferSuccess) setTransferSuccess(null)
+                          }}
                         />
                       </div>
 
-                      {error && (
+                      {transferError && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                           <p className="text-sm text-red-600">
-                            Error: {error.message}
+                            {transferError}
+                          </p>
+                        </div>
+                      )}
+
+                      {transferSuccess && (
+                        <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                          <p className="text-sm text-green-600">
+                            {transferSuccess}
                           </p>
                         </div>
                       )}
