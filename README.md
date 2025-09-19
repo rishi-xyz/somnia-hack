@@ -151,7 +151,7 @@ cp env.example .env
 Edit `contracts/.env`:
 ```env
 PRIVATE_KEY=your_private_key_here
-SOMNIA_RPC_URL=https://rpc.somnia.network
+SOMNIA_RPC_URL=https://dream-rpc.somnia.network
 ```
 
 **Frontend Environment:**
@@ -281,22 +281,22 @@ npm test
 
 ## 🌐 Network Configuration
 
-### Somnia Testnet
-- **Chain ID**: 1946
-- **RPC URL**: https://rpc.somnia.network
-- **Explorer**: https://explorer.somnia.network
-- **Currency**: SOM
+### Somnia Shannon Testnet
+- **Chain ID**: 50312
+- **RPC URL**: https://dream-rpc.somnia.network
+- **Explorer**: https://shannon-explorer.somnia.network
+- **Currency**: STT
 - **Block Time**: ~2 seconds
 
-### Adding Somnia to MetaMask
+### Adding Somnia Shannon Testnet to MetaMask
 1. Open MetaMask
 2. Go to Settings > Networks > Add Network
 3. Enter the following details:
-   - Network Name: Somnia
-   - RPC URL: https://rpc.somnia.network
-   - Chain ID: 1946
-   - Currency Symbol: SOM
-   - Block Explorer: https://explorer.somnia.network
+   - Network Name: Somnia Testnet
+   - RPC URL: https://dream-rpc.somnia.network
+   - Chain ID: 50312
+   - Currency Symbol: STT
+   - Block Explorer: https://shannon-explorer.somnia.network
 
 ---
 

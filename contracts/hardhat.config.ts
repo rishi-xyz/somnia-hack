@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "dotenv/config";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -16,9 +17,11 @@ const config: HardhatUserConfig = {
       chainId: 1337,
     },
     somnia: {
-      url: "https://rpc.somnia.network",
-      chainId: 1946,
+      url: "https://dream-rpc.somnia.network",
+      chainId: 50312,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasPrice: "auto",
+      timeout: 60000,
     },
   },
   paths: {

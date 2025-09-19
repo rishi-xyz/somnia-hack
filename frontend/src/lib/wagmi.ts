@@ -2,21 +2,21 @@ import { createConfig, http } from 'wagmi'
 import { mainnet, sepolia } from 'wagmi/chains'
 import { metaMask } from 'wagmi/connectors'
 
-// Somnia testnet configuration
+// Somnia Shannon Testnet configuration
 const somnia = {
-  id: 1946,
-  name: 'Somnia',
+  id: 50312,
+  name: 'Somnia Testnet',
   nativeCurrency: {
     decimals: 18,
-    name: 'Somnia',
-    symbol: 'SOM',
+    name: 'Somnia Testnet Token',
+    symbol: 'STT',
   },
   rpcUrls: {
-    default: { http: ['https://rpc.somnia.network'] },
-    public: { http: ['https://rpc.somnia.network'] },
+    default: { http: ['https://dream-rpc.somnia.network'] },
+    public: { http: ['https://dream-rpc.somnia.network'] },
   },
   blockExplorers: {
-    default: { name: 'Somnia Explorer', url: 'https://explorer.somnia.network' },
+    default: { name: 'Shannon Explorer', url: 'https://shannon-explorer.somnia.network' },
   },
 } as const
 
