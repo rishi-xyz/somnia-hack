@@ -188,7 +188,7 @@ export default function CreateVoucherPage() {
                 </div>
                 <h3 className="text-2xl font-semibold mb-3">Switch to Somnia Testnet</h3>
                 <p className="text-muted-foreground mb-8 text-lg">
-                  You need to be on Somnia Testnet to create vouchers. You'll need STT tokens for gas fees.
+                  You need to be on Somnia Testnet to create vouchers. You&apos;ll need STT tokens for gas fees.
                 </p>
                 <Button onClick={handleSwitchToSomnia} size="lg" className="w-full">
                   <RefreshCw className="w-4 h-4 mr-2" />

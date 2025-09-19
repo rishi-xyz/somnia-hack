@@ -79,10 +79,10 @@ export default function NameServicePage() {
     }
   }
 
-  const getErrorMessage = (error: any): string => {
+  const getErrorMessage = (error: unknown): string => {
     if (!error) return 'An unknown error occurred'
     
-    const message = error.message || error.toString()
+    const message = (error as Error)?.message || String(error)
     
     // Common error patterns and their user-friendly messages
     if (message.includes('User rejected')) {
@@ -396,7 +396,7 @@ export default function NameServicePage() {
                 <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">Switch to Somnia Testnet</h3>
                 <p className="text-gray-600 mb-6">
-                  You need to be on Somnia Testnet to use the name service. You'll need STT tokens for gas fees.
+                  You need to be on Somnia Testnet to use the name service. You&apos;ll need STT tokens for gas fees.
                 </p>
                 <Button onClick={handleSwitchToSomnia} className="w-full">
                   <RefreshCw className="w-4 h-4 mr-2" />

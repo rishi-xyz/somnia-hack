@@ -245,7 +245,7 @@ export default function RedeemVoucherPage() {
                 <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">Switch to Somnia Testnet</h3>
                 <p className="text-gray-600 mb-6">
-                  You need to be on Somnia Testnet to redeem vouchers. You'll need STT tokens for gas fees.
+                  You need to be on Somnia Testnet to redeem vouchers. You&apos;ll need STT tokens for gas fees.
                 </p>
                 <Button onClick={handleSwitchToSomnia} className="w-full">
                   <RefreshCw className="w-4 h-4 mr-2" />
