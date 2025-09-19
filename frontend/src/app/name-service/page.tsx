@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useSwitchChain, useChainId } from 'wagmi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -36,6 +36,9 @@ export default function NameServicePage() {
   const [isTransferring, setIsTransferring] = useState(false)
   const [transferError, setTransferError] = useState<string | null>(null)
   const [transferSuccess, setTransferSuccess] = useState<string | null>(null)
+  
+  // Transaction tracking
+  const processedTransactionRef = useRef<string | null>(null)
 
   const { writeContract, data: hash, isPending, error } = useWriteContract()
   
@@ -134,6 +137,10 @@ export default function NameServicePage() {
   const handleRegisterName = async () => {
     if (!isConnected || !nameToRegister) return
 
+    // Reset states for new transaction
+    setRegisterSuccess(null)
+    processedTransactionRef.current = null
+    
     // Clear previous errors
     clearErrors()
 
@@ -197,6 +204,10 @@ export default function NameServicePage() {
   const handleTransferName = async () => {
     if (!isConnected || !nameToTransfer || !newOwner) return
 
+    // Reset states for new transaction
+    setTransferSuccess(null)
+    processedTransactionRef.current = null
+    
     // Clear previous errors
     clearErrors()
 
@@ -238,37 +249,57 @@ export default function NameServicePage() {
   }
 
   // Handle successful transactions
-  if (isConfirmed) {
-    if (activeTab === 'register') {
-      setNameToRegister('')
-      refetchUserNames()
-      setIsRegistering(false)
-      setRegisterSuccess('Name registered successfully!')
-      // Clear success message after 5 seconds
-      setTimeout(() => setRegisterSuccess(null), 5000)
-    } else if (activeTab === 'my-names') {
-      setNameToTransfer('')
-      setNewOwner('')
-      refetchUserNames()
-      setIsTransferring(false)
-      setTransferSuccess('Name transferred successfully!')
-      // Clear success message after 5 seconds
-      setTimeout(() => setTransferSuccess(null), 5000)
+  useEffect(() => {
+    if (isConfirmed && hash && processedTransactionRef.current !== hash) {
+      processedTransactionRef.current = hash
+      
+      if (activeTab === 'register') {
+        setNameToRegister('')
+        refetchUserNames()
+        setIsRegistering(false)
+        setRegisterSuccess('Name registered successfully!')
+        // Clear success message after 5 seconds
+        setTimeout(() => setRegisterSuccess(null), 5000)
+      } else if (activeTab === 'my-names') {
+        setNameToTransfer('')
+        setNewOwner('')
+        refetchUserNames()
+        setIsTransferring(false)
+        setTransferSuccess('Name transferred successfully!')
+        // Clear success message after 5 seconds
+        setTimeout(() => setTransferSuccess(null), 5000)
+      }
+      // Clear any errors on successful transaction
+      clearErrors()
     }
-    // Clear any errors on successful transaction
-    clearErrors()
-  }
+  }, [isConfirmed, hash, activeTab, refetchUserNames])
+
+  // Reset states when starting a new transaction
+  useEffect(() => {
+    if (hash && !isConfirmed && !isPending) {
+      processedTransactionRef.current = null
+    }
+  }, [hash, isConfirmed, isPending])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      processedTransactionRef.current = null
+    }
+  }, [])
 
   // Handle transaction errors
-  if (error) {
-    if (activeTab === 'register') {
-      setRegisterError(getErrorMessage(error))
-      setIsRegistering(false)
-    } else if (activeTab === 'my-names') {
-      setTransferError(getErrorMessage(error))
-      setIsTransferring(false)
+  useEffect(() => {
+    if (error) {
+      if (activeTab === 'register') {
+        setRegisterError(getErrorMessage(error))
+        setIsRegistering(false)
+      } else if (activeTab === 'my-names') {
+        setTransferError(getErrorMessage(error))
+        setIsTransferring(false)
+      }
     }
-  }
+  }, [error, activeTab])
 
   const getResolveResult = () => {
     if (!nameToResolve || !nameInfo) return null

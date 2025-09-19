@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useChainId } from 'wagmi'
 import { parseEther } from 'viem'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,6 +22,7 @@ export default function CreateVoucherPage() {
   const [voucherId, setVoucherId] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const [createdVoucher, setCreatedVoucher] = useState<{ id: string; amount: string } | null>(null)
+  const processedTransactionRef = useRef<string | null>(null)
 
   const { writeContract, data: hash, isPending, error } = useWriteContract()
   
@@ -53,6 +54,10 @@ export default function CreateVoucherPage() {
       return
     }
 
+    // Reset states for new transaction
+    setCreatedVoucher(null)
+    processedTransactionRef.current = null
+
     const newVoucherId = generateVoucherId()
     setVoucherId(newVoucherId)
     setIsCreating(true)
@@ -72,10 +77,27 @@ export default function CreateVoucherPage() {
   }
 
   // Handle successful transaction
-  if (isConfirmed && !createdVoucher) {
-    setCreatedVoucher({ id: voucherId, amount })
-    setIsCreating(false)
-  }
+  useEffect(() => {
+    if (isConfirmed && hash && processedTransactionRef.current !== hash) {
+      processedTransactionRef.current = hash
+      setCreatedVoucher({ id: voucherId, amount })
+      setIsCreating(false)
+    }
+  }, [isConfirmed, hash, voucherId, amount])
+
+  // Reset states when starting a new transaction
+  useEffect(() => {
+    if (hash && !isConfirmed && !isPending) {
+      processedTransactionRef.current = null
+    }
+  }, [hash, isConfirmed, isPending])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      processedTransactionRef.current = null
+    }
+  }, [])
 
   if (createdVoucher) {
     return (

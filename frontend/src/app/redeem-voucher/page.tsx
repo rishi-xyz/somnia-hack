@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useSwitchChain, useChainId } from 'wagmi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,7 @@ export default function RedeemVoucherPage() {
   const [voucherId, setVoucherId] = useState('')
   const [isRedeeming, setIsRedeeming] = useState(false)
   const [redeemedVoucher, setRedeemedVoucher] = useState<{ id: string; amount: string } | null>(null)
+  const processedTransactionRef = useRef<string | null>(null)
 
   const { writeContract, data: hash, isPending, error } = useWriteContract()
   
@@ -61,6 +62,9 @@ export default function RedeemVoucherPage() {
       return
     }
 
+    // Reset states for new transaction
+    setRedeemedVoucher(null)
+    processedTransactionRef.current = null
     setIsRedeeming(true)
 
     try {
@@ -77,10 +81,27 @@ export default function RedeemVoucherPage() {
   }
 
   // Handle successful transaction
-  if (isConfirmed && !redeemedVoucher) {
-    setRedeemedVoucher({ id: voucherId, amount: voucherStatus ? formatEther(voucherStatus[3]) : '0' })
-    setIsRedeeming(false)
-  }
+  useEffect(() => {
+    if (isConfirmed && hash && processedTransactionRef.current !== hash) {
+      processedTransactionRef.current = hash
+      setRedeemedVoucher({ id: voucherId, amount: voucherStatus ? formatEther(voucherStatus[3]) : '0' })
+      setIsRedeeming(false)
+    }
+  }, [isConfirmed, hash, voucherId, voucherStatus])
+
+  // Reset states when starting a new transaction
+  useEffect(() => {
+    if (hash && !isConfirmed && !isPending) {
+      processedTransactionRef.current = null
+    }
+  }, [hash, isConfirmed, isPending])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      processedTransactionRef.current = null
+    }
+  }, [])
 
   const getVoucherStatusDisplay = () => {
     if (!voucherId || !voucherStatus) return null
