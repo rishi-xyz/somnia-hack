@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useChainId } from 'wagmi'
 import { parseEther } from 'viem'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,11 +10,14 @@ import { WalletConnect } from '@/components/WalletConnect'
 import { QRCodeDisplay } from '@/components/QRCodeDisplay'
 import { CONTRACT_ADDRESSES, VOUCHER_REDEMPTION_ABI } from '@/lib/contracts'
 import { generateVoucherId } from '@/lib/utils'
-import { ArrowLeft, Gift, QrCode } from 'lucide-react'
+import { somnia } from '@/lib/wagmi'
+import { ArrowLeft, Gift, QrCode, AlertTriangle, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 
 export default function CreateVoucherPage() {
   const { isConnected } = useAccount()
+  const chainId = useChainId()
+  const { switchChain } = useSwitchChain()
   const [amount, setAmount] = useState('')
   const [voucherId, setVoucherId] = useState('')
   const [isCreating, setIsCreating] = useState(false)
@@ -22,12 +25,28 @@ export default function CreateVoucherPage() {
 
   const { writeContract, data: hash, isPending, error } = useWriteContract()
   
+  // Check if user is on the correct network
+  const isCorrectNetwork = chainId === somnia.id
+  
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   })
 
+  const handleSwitchToSomnia = async () => {
+    try {
+      await switchChain({ chainId: somnia.id })
+    } catch (err) {
+      console.error('Error switching to Somnia testnet:', err)
+    }
+  }
+
   const handleCreateVoucher = async () => {
     if (!isConnected || !amount) return
+
+    if (!isCorrectNetwork) {
+      alert('Please switch to Somnia Testnet to create vouchers. You need STT tokens for gas fees.')
+      return
+    }
 
     if (!CONTRACT_ADDRESSES.VOUCHER_REDEMPTION) {
       alert('Contract address not configured. Please check your environment variables.')
@@ -96,7 +115,17 @@ export default function CreateVoucherPage() {
               <span className="font-medium">Back to Home</span>
             </Link>
           </div>
-          <WalletConnect />
+          <div className="flex items-center gap-4">
+            {isConnected && (
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-gray-100">
+                <div className={`w-2 h-2 rounded-full ${isCorrectNetwork ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                <span className="text-gray-700">
+                  {isCorrectNetwork ? 'Somnia Testnet' : `Chain ID: ${chainId}`}
+                </span>
+              </div>
+            )}
+            <WalletConnect />
+          </div>
         </div>
       </header>
 
@@ -127,6 +156,22 @@ export default function CreateVoucherPage() {
                   You need to connect your MetaMask wallet to create vouchers
                 </p>
                 <WalletConnect />
+              </CardContent>
+            </Card>
+          ) : !isCorrectNetwork ? (
+            <Card className="gradient-card border-border/50 glow-card">
+              <CardContent className="p-12 text-center">
+                <div className="w-20 h-20 bg-yellow-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <AlertTriangle className="w-10 h-10 text-yellow-500" />
+                </div>
+                <h3 className="text-2xl font-semibold mb-3">Switch to Somnia Testnet</h3>
+                <p className="text-muted-foreground mb-8 text-lg">
+                  You need to be on Somnia Testnet to create vouchers. You'll need STT tokens for gas fees.
+                </p>
+                <Button onClick={handleSwitchToSomnia} size="lg" className="w-full">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Switch to Somnia Testnet
+                </Button>
               </CardContent>
             </Card>
           ) : (

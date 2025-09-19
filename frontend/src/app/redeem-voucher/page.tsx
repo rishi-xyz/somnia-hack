@@ -1,23 +1,29 @@
 'use client'
 
 import { useState } from 'react'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useSwitchChain, useChainId } from 'wagmi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { WalletConnect } from '@/components/WalletConnect'
 import { CONTRACT_ADDRESSES, VOUCHER_REDEMPTION_ABI } from '@/lib/contracts'
 import { formatEther } from 'viem'
-import { ArrowLeft, Gift, QrCode, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { somnia } from '@/lib/wagmi'
+import { ArrowLeft, Gift, QrCode, CheckCircle, XCircle, AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 
 export default function RedeemVoucherPage() {
   const { isConnected } = useAccount()
+  const chainId = useChainId()
+  const { switchChain } = useSwitchChain()
   const [voucherId, setVoucherId] = useState('')
   const [isRedeeming, setIsRedeeming] = useState(false)
   const [redeemedVoucher, setRedeemedVoucher] = useState<{ id: string; amount: string } | null>(null)
 
   const { writeContract, data: hash, isPending, error } = useWriteContract()
+  
+  // Check if user is on the correct network
+  const isCorrectNetwork = chainId === somnia.id
   
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
@@ -34,8 +40,21 @@ export default function RedeemVoucherPage() {
     },
   })
 
+  const handleSwitchToSomnia = async () => {
+    try {
+      await switchChain({ chainId: somnia.id })
+    } catch (err) {
+      console.error('Error switching to Somnia testnet:', err)
+    }
+  }
+
   const handleRedeemVoucher = async () => {
     if (!isConnected || !voucherId) return
+
+    if (!isCorrectNetwork) {
+      alert('Please switch to Somnia Testnet to redeem vouchers. You need STT tokens for gas fees.')
+      return
+    }
 
     if (!CONTRACT_ADDRESSES.VOUCHER_REDEMPTION) {
       alert('Contract address not configured. Please check your environment variables.')
@@ -162,7 +181,17 @@ export default function RedeemVoucherPage() {
               <span className="font-medium">Back to Home</span>
             </Link>
           </div>
-          <WalletConnect />
+          <div className="flex items-center gap-4">
+            {isConnected && (
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-gray-100">
+                <div className={`w-2 h-2 rounded-full ${isCorrectNetwork ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                <span className="text-gray-700">
+                  {isCorrectNetwork ? 'Somnia Testnet' : `Chain ID: ${chainId}`}
+                </span>
+              </div>
+            )}
+            <WalletConnect />
+          </div>
         </div>
       </header>
 
@@ -187,6 +216,20 @@ export default function RedeemVoucherPage() {
                   You need to connect your wallet to redeem vouchers
                 </p>
                 <WalletConnect />
+              </CardContent>
+            </Card>
+          ) : !isCorrectNetwork ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Switch to Somnia Testnet</h3>
+                <p className="text-gray-600 mb-6">
+                  You need to be on Somnia Testnet to redeem vouchers. You'll need STT tokens for gas fees.
+                </p>
+                <Button onClick={handleSwitchToSomnia} className="w-full">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Switch to Somnia Testnet
+                </Button>
               </CardContent>
             </Card>
           ) : (

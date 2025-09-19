@@ -3,7 +3,7 @@ import { mainnet, sepolia } from 'wagmi/chains'
 import { metaMask } from 'wagmi/connectors'
 
 // Somnia Shannon Testnet configuration
-const somnia = {
+export const somnia = {
   id: 50312,
   name: 'Somnia Testnet',
   nativeCurrency: {
@@ -30,6 +30,7 @@ export const config = createConfig({
     [mainnet.id]: http(),
     [sepolia.id]: http(),
   },
+  ssr: true,
 })
 
 declare module 'wagmi' {

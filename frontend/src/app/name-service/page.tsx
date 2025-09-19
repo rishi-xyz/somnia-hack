@@ -1,20 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useSwitchChain, useChainId } from 'wagmi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { WalletConnect } from '@/components/WalletConnect'
 import { CONTRACT_ADDRESSES, SOMNIA_NAME_SERVICE_ABI } from '@/lib/contracts'
 import { formatAddress } from '@/lib/utils'
-import { ArrowLeft, Globe, Users, Search, CheckCircle, XCircle } from 'lucide-react'
+import { somnia } from '@/lib/wagmi'
+import { ArrowLeft, Globe, Users, Search, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 
 type TabType = 'register' | 'resolve' | 'my-names'
 
 export default function NameServicePage() {
   const { address, isConnected } = useAccount()
+  const chainId = useChainId()
+  const { switchChain } = useSwitchChain()
   const [activeTab, setActiveTab] = useState<TabType>('register')
   
   // Register form
@@ -30,6 +33,9 @@ export default function NameServicePage() {
   const [isTransferring, setIsTransferring] = useState(false)
 
   const { writeContract, data: hash, isPending, error } = useWriteContract()
+  
+  // Check if user is on the correct network
+  const isCorrectNetwork = chainId === somnia.id
   
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
@@ -57,8 +63,21 @@ export default function NameServicePage() {
     },
   })
 
+  const handleSwitchToSomnia = async () => {
+    try {
+      await switchChain({ chainId: somnia.id })
+    } catch (err) {
+      console.error('Error switching to Somnia testnet:', err)
+    }
+  }
+
   const handleRegisterName = async () => {
     if (!isConnected || !nameToRegister) return
+
+    if (!isCorrectNetwork) {
+      alert('Please switch to Somnia Testnet to register names. You need STT tokens for gas fees.')
+      return
+    }
 
     if (!CONTRACT_ADDRESSES.SOMNIA_NAME_SERVICE) {
       alert('Contract address not configured. Please check your environment variables.')
@@ -87,6 +106,11 @@ export default function NameServicePage() {
 
   const handleTransferName = async () => {
     if (!isConnected || !nameToTransfer || !newOwner) return
+
+    if (!isCorrectNetwork) {
+      alert('Please switch to Somnia Testnet to transfer names. You need STT tokens for gas fees.')
+      return
+    }
 
     if (!CONTRACT_ADDRESSES.SOMNIA_NAME_SERVICE) {
       alert('Contract address not configured. Please check your environment variables.')
@@ -174,7 +198,17 @@ export default function NameServicePage() {
               <span className="font-medium">Back to Home</span>
             </Link>
           </div>
-          <WalletConnect />
+          <div className="flex items-center gap-4">
+            {isConnected && (
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-gray-100">
+                <div className={`w-2 h-2 rounded-full ${isCorrectNetwork ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                <span className="text-gray-700">
+                  {isCorrectNetwork ? 'Somnia Testnet' : `Chain ID: ${chainId}`}
+                </span>
+              </div>
+            )}
+            <WalletConnect />
+          </div>
         </div>
       </header>
 
@@ -199,6 +233,20 @@ export default function NameServicePage() {
                   You need to connect your wallet to use the name service
                 </p>
                 <WalletConnect />
+              </CardContent>
+            </Card>
+          ) : !isCorrectNetwork ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Switch to Somnia Testnet</h3>
+                <p className="text-gray-600 mb-6">
+                  You need to be on Somnia Testnet to use the name service. You'll need STT tokens for gas fees.
+                </p>
+                <Button onClick={handleSwitchToSomnia} className="w-full">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Switch to Somnia Testnet
+                </Button>
               </CardContent>
             </Card>
           ) : (
