@@ -1,208 +1,283 @@
-# Somnia ENS - Voucher & Name Service MVP
+# 🎫 Somnia Vouchers + Name Service
 
-A Somnia blockchain hackathon MVP featuring voucher redemption system and Somnia Name Service (SNS) built with Next.js 14 and Solidity smart contracts.
+> **Redeemable On-Chain Vouchers + Human-Readable Wallet Names for Somnia**
 
-## 🚀 Features
+A comprehensive Web3 platform built on Somnia blockchain featuring QR-based voucher redemption and a lightweight name service system. Create, share, and redeem vouchers instantly while managing human-readable wallet names.
 
-### 1. Voucher Redemption System
-- **Create Vouchers**: Lock funds with unique voucher IDs and generate QR codes
-- **Redeem Vouchers**: Scan QR codes or paste voucher IDs to redeem funds
-- **Prevent Double Spending**: Smart contract ensures vouchers can only be redeemed once
+[![Somnia](https://img.shields.io/badge/Built%20on-Somnia-8b5cf6?style=for-the-badge&logo=ethereum)](https://somnia.network)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.20-363636?style=for-the-badge&logo=solidity)](https://soliditylang.org)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+
+---
+
+## 🎯 Introduction
+
+### The Problem
+- **Unreadable wallet addresses**: `0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6` is hard to remember and share
+- **Offline fund transfers**: No easy way to transfer funds without being online
+- **Complex transaction flows**: Sending crypto requires copying long addresses
+- **Poor user experience**: Web3 interactions are often clunky and unintuitive
+
+### Our Solution
+- **QR-based vouchers**: Lock funds and share via QR codes for instant redemption
+- **Human-readable names**: Register `rishi.somnia` instead of remembering addresses
+- **Seamless UX**: Modern, dark-themed interface with smooth animations
+- **MetaMask integration**: Simple wallet connection for Somnia blockchain
+
+---
+
+## ✨ Features
+
+### 🎫 Voucher System
+- **Create Vouchers**: Lock funds with unique IDs and generate QR codes
+- **Instant Redemption**: Scan QR codes or paste voucher IDs to redeem
+- **Double-Spending Prevention**: Smart contracts ensure vouchers can only be redeemed once
 - **Real-time Status**: Check voucher validity and redemption status
+- **Download QR**: Save QR codes as images for offline sharing
 
-### 2. Somnia Name Service (SNS)
+### 🏷️ Somnia Name Service (SNS)
 - **Register Names**: Create human-readable names like `rishi.somnia`
-- **Resolve Names**: Look up addresses for registered names
-- **Transfer Names**: Transfer ownership of names to other addresses
-- **Name Validation**: Ensures names follow proper format and are unique
+- **Resolve Addresses**: Look up addresses for registered names
+- **Transfer Ownership**: Transfer name ownership to other addresses
+- **Name Validation**: Ensures proper `.somnia` format and uniqueness
+- **Multi-tab Interface**: Easy switching between register, resolve, and manage
 
-## 🛠 Tech Stack
+### 🎨 Modern UI/UX
+- **Dark Theme**: Beautiful dark interface with purple/indigo accents
+- **Responsive Design**: Works perfectly on desktop and mobile
+- **Smooth Animations**: Floating effects, glows, and transitions
+- **MetaMask Only**: Simplified wallet connection experience
+- **Real-time Feedback**: Loading states, success messages, and error handling
+
+---
+
+## 🛠 Technical Stack
 
 ### Smart Contracts
-- **Solidity** ^0.8.20
-- **Hardhat** for development and deployment
-- **Ethers.js** for contract interaction
+- **Language**: Solidity ^0.8.20
+- **Framework**: Hardhat
+- **Network**: Somnia (EVM-compatible)
+- **Testing**: Hardhat test suite
 
 ### Frontend
-- **Next.js 14** with App Router
-- **TypeScript** for type safety
-- **TailwindCSS** for styling
-- **wagmi v2** + **viem** for wallet integration
-- **qrcode.react** for QR code generation
-- **Lucide React** for icons
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: TailwindCSS + shadcn/ui
+- **Wallet**: wagmi v2 + viem
+- **QR Codes**: qrcode.react
+- **Icons**: lucide-react
 
-## 📁 Project Structure
+### Development Tools
+- **Package Manager**: npm
+- **Linting**: ESLint
+- **Type Checking**: TypeScript
+- **Version Control**: Git
 
+---
+
+## 🏗 Architecture & Flow
+
+### Voucher Creation Flow
+```mermaid
+graph LR
+    A[User Inputs Amount] --> B[Generate Voucher ID]
+    B --> C[Call createVoucher]
+    C --> D[Funds Locked in Contract]
+    D --> E[Emit VoucherCreated Event]
+    E --> F[Generate QR Code]
+    F --> G[Display Success UI]
 ```
-somnia-ens/
-├── contracts/                 # Smart contracts
-│   ├── contracts/
-│   │   ├── VoucherRedemption.sol
-│   │   └── SomniaNameService.sol
-│   ├── scripts/
-│   │   ├── deploy.ts
-│   │   └── verify.ts
-│   ├── hardhat.config.ts
-│   └── package.json
-├── frontend/                  # Next.js application
-│   ├── src/
-│   │   ├── app/              # App Router pages
-│   │   │   ├── create-voucher/
-│   │   │   ├── redeem-voucher/
-│   │   │   ├── name-service/
-│   │   │   └── page.tsx
-│   │   ├── components/       # React components
-│   │   │   ├── ui/           # UI components
-│   │   │   ├── WalletConnect.tsx
-│   │   │   └── QRCodeDisplay.tsx
-│   │   └── lib/              # Utilities and configs
-│   │       ├── contracts.ts
-│   │       ├── wagmi.ts
-│   │       └── utils.ts
-│   └── package.json
-└── README.md
+
+### Voucher Redemption Flow
+```mermaid
+graph LR
+    A[Scan/Paste QR Code] --> B[Check Voucher Status]
+    B --> C{Valid & Not Redeemed?}
+    C -->|Yes| D[Call redeemVoucher]
+    C -->|No| E[Show Error Message]
+    D --> F[Funds Transferred to User]
+    F --> G[Emit VoucherRedeemed Event]
+    G --> H[Show Success Message]
 ```
+
+### Name Service Flow
+```mermaid
+graph LR
+    A[Register Name] --> B[Validate .somnia Format]
+    B --> C[Check Name Availability]
+    C --> D[Store Name → Address Mapping]
+    D --> E[Emit NameRegistered Event]
+    
+    F[Resolve Name] --> G[Lookup in Mapping]
+    G --> H[Return Address]
+```
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Git
+- MetaMask wallet with Somnia testnet
 
-### 1. Clone the Repository
+### 1. Clone Repository
 ```bash
-git clone <repository-url>
-cd somnia-ens
+git clone https://github.com/rishi-xyz/somnia-hack.git
+cd somnia-hack
 ```
 
-### 2. Set Up Smart Contracts
-
+### 2. Install Dependencies
 ```bash
+# Install contract dependencies
 cd contracts
+npm install
+
+# Install frontend dependencies
+cd ../frontend
 npm install
 ```
 
-Create environment file:
+### 3. Environment Setup
+
+**Contracts Environment:**
 ```bash
+cd contracts
 cp env.example .env
 ```
 
-Edit `.env` with your private key:
+Edit `contracts/.env`:
 ```env
 PRIVATE_KEY=your_private_key_here
 SOMNIA_RPC_URL=https://rpc.somnia.network
 ```
 
-### 3. Deploy Smart Contracts
-
-Compile contracts:
+**Frontend Environment:**
 ```bash
-npx hardhat compile
+cd frontend
+cp env.example .env.local
 ```
 
-Deploy to Somnia testnet:
-```bash
-npx hardhat run scripts/deploy.ts --network somnia
-```
-
-This will output contract addresses. Copy them to your frontend environment.
-
-### 4. Set Up Frontend
-
-```bash
-cd ../frontend
-npm install
-```
-
-Create environment file:
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local` with contract addresses:
+Edit `frontend/.env.local`:
 ```env
 NEXT_PUBLIC_VOUCHER_CONTRACT_ADDRESS=0x...
 NEXT_PUBLIC_SNS_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
 ```
 
-### 5. Run the Application
-
+### 4. Deploy Contracts
 ```bash
+cd contracts
+
+# Compile contracts
+npm run compile
+
+# Deploy to Somnia testnet
+npm run deploy:somnia
+```
+
+Copy the deployed contract addresses to your frontend `.env.local` file.
+
+### 5. Start Frontend
+```bash
+cd frontend
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 📱 Usage
+---
 
-### Voucher System
+## 📱 Demo Usage
 
-1. **Create Voucher**:
-   - Connect your wallet
-   - Enter amount to lock
-   - Click "Create Voucher"
-   - Share the generated QR code or voucher ID
+### Creating a Voucher
+1. Navigate to `/create-voucher`
+2. Connect your MetaMask wallet
+3. Enter the amount you want to lock (in SOM)
+4. Click "Create Voucher"
+5. Share the generated QR code or voucher ID
 
-2. **Redeem Voucher**:
-   - Connect your wallet
-   - Enter or scan voucher ID
-   - Check voucher status
-   - Click "Redeem Voucher" if valid
+### Redeeming a Voucher
+1. Navigate to `/redeem-voucher`
+2. Connect your MetaMask wallet
+3. Enter or scan the voucher ID
+4. Click "Check Voucher Status"
+5. If valid, click "Redeem Voucher"
 
-### Name Service
+### Managing Names
+1. Navigate to `/name-service`
+2. **Register**: Enter a name like `myname.somnia` and register
+3. **Resolve**: Enter a registered name to get the address
+4. **Transfer**: Transfer name ownership to another address
 
-1. **Register Name**:
-   - Connect your wallet
-   - Enter name ending with `.somnia`
-   - Click "Register Name"
+---
 
-2. **Resolve Name**:
-   - Enter a registered name
-   - Click "Resolve" to get the address
+## 📋 Smart Contract Details
 
-3. **Manage Names**:
-   - View your registered names
-   - Transfer names to other addresses
+### VoucherRedemption.sol
+```solidity
+// Key Functions
+function createVoucher(bytes32 voucherId) external payable
+function redeemVoucher(bytes32 voucherId) external
+function getVoucherAmount(bytes32 voucherId) external view returns(uint256)
+function getVoucherStatus(bytes32 voucherId) external view returns(bool, bool, address, uint256)
+
+// Events
+event VoucherCreated(bytes32 voucherId, uint256 amount, address creator)
+event VoucherRedeemed(bytes32 voucherId, uint256 amount, address redeemer)
+```
+
+### SomniaNameService.sol
+```solidity
+// Key Functions
+function registerName(string calldata name) external
+function resolveName(string calldata name) external view returns(address)
+function transferName(string calldata name, address newOwner) external
+function getOwnerNames(address owner) external view returns(string[])
+function getNameInfo(string calldata name) external view returns(address, uint256, bool)
+
+// Events
+event NameRegistered(string name, address owner)
+event NameTransferred(string name, address from, address to)
+```
+
+---
 
 ## 🔧 Development
 
-### Smart Contract Development
+### Available Scripts
 
+**Contracts:**
 ```bash
+npm run compile          # Compile contracts
+npm run test            # Run tests
+npm run deploy:local    # Deploy to local network
+npm run deploy:somnia   # Deploy to Somnia testnet
+npm run verify          # Verify contracts on explorer
+npm run clean           # Clean build artifacts
+```
+
+**Frontend:**
+```bash
+npm run dev             # Start development server
+npm run build           # Build for production
+npm run start           # Start production server
+npm run lint            # Run ESLint
+```
+
+### Testing
+```bash
+# Run contract tests
 cd contracts
+npm test
 
-# Compile contracts
-npx hardhat compile
-
-# Run tests
-npx hardhat test
-
-# Deploy to local network
-npx hardhat run scripts/deploy.ts --network hardhat
-
-# Deploy to Somnia testnet
-npx hardhat run scripts/deploy.ts --network somnia
-```
-
-### Frontend Development
-
-```bash
+# Run frontend tests
 cd frontend
-
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
+npm test
 ```
+
+---
 
 ## 🌐 Network Configuration
 
@@ -211,97 +286,125 @@ npm start
 - **RPC URL**: https://rpc.somnia.network
 - **Explorer**: https://explorer.somnia.network
 - **Currency**: SOM
+- **Block Time**: ~2 seconds
 
-## 📋 Smart Contract Details
+### Adding Somnia to MetaMask
+1. Open MetaMask
+2. Go to Settings > Networks > Add Network
+3. Enter the following details:
+   - Network Name: Somnia
+   - RPC URL: https://rpc.somnia.network
+   - Chain ID: 1946
+   - Currency Symbol: SOM
+   - Block Explorer: https://explorer.somnia.network
 
-### VoucherRedemption.sol
-
-**Functions**:
-- `createVoucher(bytes32 voucherId) payable` - Create a new voucher
-- `redeemVoucher(bytes32 voucherId)` - Redeem a voucher
-- `getVoucherAmount(bytes32 voucherId) view returns(uint256)` - Get voucher amount
-- `getVoucherStatus(bytes32 voucherId) view returns(bool, bool, address, uint256)` - Get voucher status
-
-**Events**:
-- `VoucherCreated(bytes32 voucherId, uint256 amount, address creator)`
-- `VoucherRedeemed(bytes32 voucherId, uint256 amount, address redeemer)`
-
-### SomniaNameService.sol
-
-**Functions**:
-- `registerName(string calldata name)` - Register a new name
-- `resolveName(string calldata name) view returns(address)` - Resolve name to address
-- `transferName(string calldata name, address newOwner)` - Transfer name ownership
-- `getOwnerNames(address owner) view returns(string[])` - Get names owned by address
-- `getNameInfo(string calldata name) view returns(address, uint256, bool)` - Get name information
-
-**Events**:
-- `NameRegistered(string name, address owner)`
-- `NameTransferred(string name, address from, address to)`
+---
 
 ## 🚀 Deployment
 
-### Deploy to Somnia Testnet
-
-1. **Deploy Contracts**:
+### Smart Contracts
 ```bash
 cd contracts
-npx hardhat run scripts/deploy.ts --network somnia
+
+# Deploy to Somnia testnet
+npm run deploy:somnia
+
+# Verify contracts (optional)
+npm run verify
 ```
 
-2. **Verify Contracts** (optional):
-```bash
-npx hardhat run scripts/verify.ts --network somnia
-```
-
-3. **Update Frontend**:
-   - Copy contract addresses to `.env.local`
-   - Deploy frontend to Vercel or your preferred hosting
-
-### Deploy Frontend to Vercel
-
+### Frontend (Vercel)
 1. Push code to GitHub
 2. Connect repository to Vercel
 3. Add environment variables in Vercel dashboard
 4. Deploy
 
-## 🔒 Security Considerations
+### Frontend (Other Platforms)
+```bash
+cd frontend
 
-- Private keys should never be committed to version control
-- Use environment variables for sensitive data
-- Test thoroughly on testnet before mainnet deployment
-- Consider implementing access controls for production use
+# Build for production
+npm run build
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For issues and questions:
-1. Check the documentation
-2. Search existing issues
-3. Create a new issue with detailed description
-
-## 🎯 Future Enhancements
-
-- [ ] QR code scanning with camera
-- [ ] Batch voucher operations
-- [ ] Name expiration system
-- [ ] Subdomain support
-- [ ] Mobile app
-- [ ] Integration with other blockchains
-- [ ] Advanced name validation rules
-- [ ] Name marketplace
+# Deploy to your preferred platform
+# (Netlify, AWS, etc.)
+```
 
 ---
 
-Built with ❤️ for the Somnia blockchain hackathon
+## 🔒 Security Considerations
+
+- **Private Keys**: Never commit private keys to version control
+- **Environment Variables**: Use `.env` files for sensitive data
+- **Testnet First**: Always test on testnet before mainnet
+- **Access Controls**: Consider implementing admin functions for production
+- **Input Validation**: All user inputs are validated on-chain
+- **Reentrancy**: Contracts use checks-effects-interactions pattern
+
+---
+
+## 🎯 Future Enhancements
+
+### Phase 1 (Immediate)
+- [ ] **Mobile App**: React Native app with camera QR scanning
+- [ ] **Batch Operations**: Create multiple vouchers at once
+- [ ] **Voucher Expiry**: Time-based voucher expiration
+- [ ] **Multi-token Support**: Support for ERC20 tokens
+
+### Phase 2 (Short-term)
+- [ ] **Subdomain Support**: `user.rishi.somnia` subdomains
+- [ ] **Name Marketplace**: Buy/sell names on secondary market
+- [ ] **Governance**: Decentralized governance for SNS
+
+### Phase 3 (Long-term)
+- [ ] **Cross-chain Support**: Multi-blockchain voucher system
+- [ ] **Advanced Analytics**: Voucher usage and name statistics
+- [ ] **Mobile Wallet**: Custom mobile wallet with built-in features
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes**: Follow the coding standards
+4. **Test thoroughly**: Ensure all tests pass
+5. **Commit changes**: `git commit -m 'Add amazing feature'`
+6. **Push to branch**: `git push origin feature/amazing-feature`
+7. **Open a Pull Request**: Describe your changes clearly
+
+### Development Guidelines
+- Follow TypeScript best practices
+- Write comprehensive tests
+- Update documentation
+- Follow conventional commit messages
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🆘 Support
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/rishi-xyz/somnia-hack/issues)
+
+---
+
+## 🙏 Acknowledgments
+
+- **Somnia Team**: For building an amazing EVM-compatible blockchain
+- **Hardhat**: For the excellent development framework
+- **Next.js Team**: For the powerful React framework
+- **wagmi**: For seamless wallet integration
+- **shadcn/ui**: For beautiful UI components
+
+---
+
+**Built with ❤️ for the Somnia blockchain hackathon**
+
+*Making Web3 more accessible, one voucher at a time.*
