@@ -9,7 +9,7 @@ import { WalletConnect } from '@/components/WalletConnect'
 import { CONTRACT_ADDRESSES, SOMNIA_NAME_SERVICE_ABI } from '@/lib/contracts'
 import { formatAddress } from '@/lib/utils'
 import { somnia } from '@/lib/wagmi'
-import { ArrowLeft, Globe, Users, Search, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Globe, Users, Search, CheckCircle, XCircle, AlertTriangle, RefreshCw, Copy } from 'lucide-react'
 import Link from 'next/link'
 
 type TabType = 'register' | 'resolve' | 'my-names'
@@ -29,6 +29,7 @@ export default function NameServicePage() {
   // Resolve form
   const [nameToResolve, setNameToResolve] = useState('')
   const [resolveError, setResolveError] = useState<string | null>(null)
+  const [copiedAddress, setCopiedAddress] = useState(false)
   
   // Transfer form
   const [nameToTransfer, setNameToTransfer] = useState('')
@@ -114,6 +115,16 @@ export default function NameServicePage() {
     setTransferError(null)
     setRegisterSuccess(null)
     setTransferSuccess(null)
+  }
+
+  const handleCopyAddress = async (address: string) => {
+    try {
+      await navigator.clipboard.writeText(address)
+      setCopiedAddress(true)
+      setTimeout(() => setCopiedAddress(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy address: ', err)
+    }
   }
 
   // Timeout mechanism to prevent stuck processing states
@@ -322,10 +333,21 @@ export default function NameServicePage() {
           <span className="text-green-600 font-medium">Name resolved successfully</span>
         </div>
         <div className="p-4 bg-white/80 backdrop-blur-sm rounded-md border border-white/20">
-          <div className="space-y-2 text-sm">
+          <div className="space-y-3 text-sm">
             <div>
               <span className="text-gray-600">Address:</span>
-              <p className="font-mono text-black">{formatAddress(owner)}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="font-mono text-black text-xs break-all">{owner}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopyAddress(owner)}
+                  className="flex items-center gap-1 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex-shrink-0"
+                >
+                  <Copy className="w-3 h-3" />
+                  {copiedAddress ? 'Copied!' : 'Copy'}
+                </Button>
+              </div>
             </div>
             <div>
               <span className="text-gray-600">Registered:</span>
