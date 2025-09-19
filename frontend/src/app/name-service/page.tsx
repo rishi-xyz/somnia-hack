@@ -166,15 +166,15 @@ export default function NameServicePage() {
           <CheckCircle className="w-5 h-5 text-green-600" />
           <span className="text-green-600 font-medium">Name resolved successfully</span>
         </div>
-        <div className="p-4 bg-gray-50 rounded-md">
+        <div className="p-4 bg-white/80 backdrop-blur-sm rounded-md border border-white/20">
           <div className="space-y-2 text-sm">
             <div>
-              <span className="text-gray-500">Address:</span>
-              <p className="font-mono">{formatAddress(owner)}</p>
+              <span className="text-gray-600">Address:</span>
+              <p className="font-mono text-black">{formatAddress(owner)}</p>
             </div>
             <div>
-              <span className="text-gray-500">Registered:</span>
-              <p>{new Date(Number(registeredAt) * 1000).toLocaleDateString()}</p>
+              <span className="text-gray-600">Registered:</span>
+              <p className="text-black">{new Date(Number(registeredAt) * 1000).toLocaleDateString()}</p>
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function NameServicePage() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Globe className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Somnia Name Service</h1>
+              <h1 className="text-3xl font-bold text-white">Somnia Name Service</h1>
             </div>
             <p className="text-gray-600">
               Register and manage human-readable names for addresses
@@ -384,9 +384,9 @@ export default function NameServicePage() {
                       {userNames && userNames.length > 0 ? (
                         <div className="space-y-2">
                           {userNames.map((name, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                              <span className="font-mono">{name}</span>
-                              <span className="text-sm text-gray-500">Active</span>
+                            <div key={index} className="flex items-center justify-between p-3 bg-white/80 backdrop-blur-sm rounded-md border border-white/20">
+                              <span className="font-mono text-black">{name}</span>
+                              <span className="text-sm text-gray-600">Active</span>
                             </div>
                           ))}
                         </div>
